@@ -6,145 +6,163 @@
     <title>Workout Tracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         input[type="number"] { -moz-appearance: textfield; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         
         @keyframes alert-pulse {
-            0% { background-color: #fee2e2; }
-            50% { background-color: #ef4444; }
-            100% { background-color: #fee2e2; }
+            0% { background-color: #ffffff; }
+            50% { background-color: #ef4444; color: white; }
+            100% { background-color: #ffffff; }
         }
-        .timer-alert { animation: alert-pulse 1s infinite; }
+        .timer-alert { animation: alert-pulse 0.5s infinite; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-24">
+<body class="bg-slate-50 min-h-screen pb-32">
 
     <!-- Pantalla de Bloqueo -->
-    <div id="lock-screen" class="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center p-6 text-white">
-        <h1 class="text-3xl font-bold mb-8">Gym Log</h1>
+    <div id="lock-screen" class="fixed inset-0 z-[60] bg-slate-900 flex flex-col items-center justify-center p-6 text-white">
+        <div class="text-center space-y-2 mb-8">
+            <h1 class="text-4xl font-black tracking-tight">GYM<span class="text-blue-500">LOG</span></h1>
+            <p class="text-slate-400 text-sm uppercase tracking-widest">Personal Training Assistant</p>
+        </div>
         <div class="w-full max-w-xs space-y-4">
-            <input type="password" id="app-password" placeholder="Introduce contraseña" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 text-center text-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button onclick="checkPassword()" class="w-full bg-blue-600 hover:bg-blue-700 p-4 rounded-xl font-bold transition">Entrar</button>
-            <p id="error-msg" class="text-red-400 text-center hidden">Contraseña incorrecta</p>
+            <input type="password" id="app-password" pattern="[0-9]*" inputmode="numeric" placeholder="Contraseña" class="w-full p-4 rounded-2xl bg-slate-800 border border-slate-700 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            <button onclick="checkPassword()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 p-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-900/20 transition-all">Entrar</button>
+            <p id="error-msg" class="text-red-400 text-center text-sm font-medium hidden">Contraseña incorrecta</p>
         </div>
     </div>
 
     <!-- App Principal -->
     <div id="app" class="hidden">
-        <header class="p-4 bg-white border-b sticky top-0 z-30 flex justify-between items-center shadow-sm">
-            <h2 class="text-xl font-bold text-slate-800" id="current-title">Mis Rutinas</h2>
-            <button onclick="saveAllData()" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Guardar</button>
+        <header class="p-4 bg-white/80 border-b sticky top-0 z-30 flex justify-between items-center glass">
+            <h2 class="text-xl font-extrabold text-slate-800" id="current-title">Mis Rutinas</h2>
+            <button id="save-btn" onclick="saveAllData()" class="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md active:scale-95 transition-all">Guardar</button>
         </header>
 
         <main class="p-4 max-w-md mx-auto">
             
             <!-- VISTA: LISTADO DE DÍAS -->
             <div id="view-home" class="tab-content active space-y-4">
-                <button onclick="openDay('push')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
-                    <div class="text-left">
-                        <span class="text-blue-500 font-bold uppercase text-xs">Día 1</span>
-                        <h3 class="text-xl font-bold">Empuje (Push)</h3>
+                <div onclick="openDay('push')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-xl">🔥</div>
+                        <div>
+                            <span class="text-blue-500 font-bold uppercase text-[10px] tracking-wider">Día 1</span>
+                            <h3 class="text-lg font-bold text-slate-800">Empuje (Push)</h3>
+                        </div>
                     </div>
-                    <span class="text-gray-400">→</span>
-                </button>
-                <button onclick="openDay('legs')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
-                    <div class="text-left">
-                        <span class="text-green-500 font-bold uppercase text-xs">Día 2</span>
-                        <h3 class="text-xl font-bold">Pierna Completa</h3>
+                    <span class="text-slate-300">→</span>
+                </div>
+                <div onclick="openDay('legs')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-xl">🦵</div>
+                        <div>
+                            <span class="text-green-500 font-bold uppercase text-[10px] tracking-wider">Día 2</span>
+                            <h3 class="text-lg font-bold text-slate-800">Pierna Completa</h3>
+                        </div>
                     </div>
-                    <span class="text-gray-400">→</span>
-                </button>
-                <button onclick="openDay('pull')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
-                    <div class="text-left">
-                        <span class="text-red-500 font-bold uppercase text-xs">Día 3</span>
-                        <h3 class="text-xl font-bold">Tracción (Pull)</h3>
+                    <span class="text-slate-300">→</span>
+                </div>
+                <div onclick="openDay('pull')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-xl">🦾</div>
+                        <div>
+                            <span class="text-red-500 font-bold uppercase text-[10px] tracking-wider">Día 3</span>
+                            <h3 class="text-lg font-bold text-slate-800">Tracción (Pull)</h3>
+                        </div>
                     </div>
-                    <span class="text-gray-400">→</span>
-                </button>
-                <button onclick="openDay('free')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
-                    <div class="text-left">
-                        <span class="text-purple-500 font-bold uppercase text-xs">Día 4</span>
-                        <h3 class="text-xl font-bold">Día Libre</h3>
+                    <span class="text-slate-300">→</span>
+                </div>
+                <div onclick="openDay('free')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-xl">✨</div>
+                        <div>
+                            <span class="text-purple-500 font-bold uppercase text-[10px] tracking-wider">Día 4</span>
+                            <h3 class="text-lg font-bold text-slate-800">Día Libre</h3>
+                        </div>
                     </div>
-                    <span class="text-gray-400">→</span>
-                </button>
-                <button onclick="openDay('cardio')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
-                    <div class="text-left">
-                        <span class="text-orange-500 font-bold uppercase text-xs">Día 5</span>
-                        <h3 class="text-xl font-bold">Cardio & Salud</h3>
+                    <span class="text-slate-300">→</span>
+                </div>
+                <div onclick="openDay('cardio')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-xl">🏃</div>
+                        <div>
+                            <span class="text-orange-500 font-bold uppercase text-[10px] tracking-wider">Día 5</span>
+                            <h3 class="text-lg font-bold text-slate-800">Cardio & Salud</h3>
+                        </div>
                     </div>
-                    <span class="text-gray-400">→</span>
-                </button>
+                    <span class="text-slate-300">→</span>
+                </div>
             </div>
 
             <!-- VISTA: ENTRENAMIENTO DETALLE -->
             <div id="view-workout" class="tab-content">
-                <div id="exercise-list" class="space-y-6">
+                <div id="exercise-list" class="space-y-6 mb-8">
                     <!-- Dinámico -->
                 </div>
             </div>
 
             <!-- VISTA: CARDIO -->
             <div id="view-cardio" class="tab-content">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Tiempo Total (min)</label>
-                        <input type="number" id="cardio-time" class="w-full mt-1 p-3 border rounded-xl" placeholder="Ej: 45">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase text-slate-400">Tiempo Total (minutos)</label>
+                        <input type="number" id="cardio-time" class="w-full p-4 bg-slate-50 rounded-2xl text-xl font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all" placeholder="0">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Kcal Gastadas (Apple Watch)</label>
-                        <input type="number" id="cardio-kcal" class="w-full mt-1 p-3 border rounded-xl" placeholder="Ej: 350">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase text-slate-400">Kcal Gastadas (Apple Watch)</label>
+                        <input type="number" id="cardio-kcal" class="w-full p-4 bg-slate-50 rounded-2xl text-xl font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all" placeholder="0">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Notas/Tipo</label>
-                        <textarea id="cardio-notes" class="w-full mt-1 p-3 border rounded-xl" placeholder="Cinta, elíptica..."></textarea>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase text-slate-400">Notas de la sesión</label>
+                        <textarea id="cardio-notes" rows="3" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 transition-all" placeholder="Ej: Intervalos en cinta..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA: ESTADÍSTICAS -->
-            <div id="view-stats" class="tab-content">
-                <div id="stats-container" class="space-y-4 text-center py-10 text-gray-500">
-                    <p>Las estadísticas se calcularán basándose en tus sesiones guardadas.</p>
-                    <div class="bg-white p-4 rounded-xl border text-left text-slate-800">
-                        <h4 class="font-bold">Resumen rápido</h4>
-                        <div id="stats-summary" class="mt-2 space-y-1">
-                            <!-- JS -->
-                        </div>
-                    </div>
+            <!-- VISTA: DIARIO -->
+            <div id="view-history" class="tab-content">
+                <div id="history-list" class="space-y-4">
+                    <!-- Dinámico -->
                 </div>
             </div>
 
         </main>
 
         <!-- Navegación Inferior -->
-        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-2 glass z-40">
-            <div class="flex flex-col space-y-2">
-                <!-- Selectores de Tiempo de Descanso -->
-                <div class="flex justify-center space-x-2 pb-2 border-b">
-                    <button onclick="setTimer(60)" class="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-bold">60s</button>
-                    <button onclick="setTimer(90)" class="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-bold">90s</button>
-                    <button onclick="setTimer(120)" class="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-bold">120s</button>
-                    <button onclick="resetTimer()" class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-bold">Reset</button>
-                </div>
+        <nav class="fixed bottom-0 left-0 right-0 p-4 pb-6 glass z-40 border-t border-white/20">
+            <div class="max-w-md mx-auto flex flex-col space-y-4">
                 
-                <div class="flex justify-around items-center">
-                    <button onclick="showTab('home')" class="p-2 flex flex-col items-center">
-                        <span class="text-xl">🏋️</span>
-                        <span class="text-[10px] uppercase font-bold text-gray-600">Rutinas</span>
+                <!-- Controles Temporizador -->
+                <div id="timer-ui" class="flex items-center justify-between bg-white rounded-2xl p-2 shadow-sm border border-slate-100">
+                    <div class="flex space-x-1 pl-1">
+                        <button onclick="userStartTimer(60)" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-xl text-[11px] font-bold">60s</button>
+                        <button onclick="userStartTimer(90)" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-xl text-[11px] font-bold">90s</button>
+                        <button onclick="userStartTimer(120)" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-xl text-[11px] font-bold">120s</button>
+                    </div>
+                    <div id="timer-display-box" onclick="toggleTimer()" class="flex-1 text-center cursor-pointer h-10 flex items-center justify-center rounded-xl transition-all">
+                        <span id="timer-display" class="font-mono text-xl font-black text-slate-800">00:00</span>
+                    </div>
+                    <button onclick="resetTimer()" class="w-10 h-10 flex items-center justify-center text-red-500 bg-red-50 rounded-xl mr-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                        </svg>
                     </button>
-                    
-                    <button id="timer-btn" onclick="toggleTimer()" class="p-2 flex flex-col items-center bg-blue-100 rounded-full h-14 w-14 justify-center shadow-inner transition-colors">
-                        <span id="timer-display" class="font-mono text-sm font-bold">00:00</span>
+                </div>
+
+                <!-- Botones Principales -->
+                <div class="flex justify-around items-center px-4">
+                    <button onclick="showTab('home')" class="flex flex-col items-center group">
+                        <span class="text-2xl opacity-60 group-active:scale-125 transition-transform">📋</span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase mt-1">Rutinas</span>
                     </button>
-                    
-                    <button onclick="showTab('stats')" class="p-2 flex flex-col items-center">
-                        <span class="text-xl">📊</span>
-                        <span class="text-[10px] uppercase font-bold text-gray-600">Stats</span>
+                    <button onclick="showTab('history')" class="flex flex-col items-center group">
+                        <span class="text-2xl opacity-60 group-active:scale-125 transition-transform">📖</span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase mt-1">Diario</span>
                     </button>
                 </div>
             </div>
@@ -152,52 +170,125 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN Y ESTADO
-        const APP_PASS = "1234"; 
+        const APP_PASS = "1234";
         let currentDay = '';
-        let timerInterval;
-        let timeLeft = 0; 
-        let isTimerRunning = false;
+        
+        let timerEndTimestamp = null;
+        let timerInterval = null;
+        let isTimerPaused = true;
+        let remainingSeconds = 0;
+        let audioCtx = null;
 
-        const workouts = {
-            push: ["Press de Pecho", "Press Superior Hombro", "Elevaciones Laterales", "Extensión Tríceps Polea", "Ejercicio Libre"],
+        const allExercises = [
+            "Press de Pecho", "Press Superior Hombro", "Elevaciones Laterales", "Extensión Tríceps Polea",
+            "Sentadilla Hack", "Extensión Cuádriceps", "Flexión Isquios", "Gemelo Elevación", "Peso Muerto",
+            "Dominadas", "Jalón al Pecho", "Remo a dos brazos", "Curl de Bíceps"
+        ];
+
+        const baseWorkouts = {
+            push: ["Press de Pecho", "Press Superior Hombro", "Elevaciones Laterales", "Extensión Tríceps Polea", "LIBRE"],
             legs: ["Sentadilla Hack", "Extensión Cuádriceps", "Flexión Isquios", "Gemelo Elevación", "Peso Muerto"],
-            pull: ["Dominadas", "Jalón al Pecho", "Remo a dos brazos", "Curl de Bíceps", "Ejercicio Libre"],
-            free: ["Libre 1", "Libre 2", "Libre 3", "Libre 4", "Libre 5"]
+            pull: ["Dominadas", "Jalón al Pecho", "Remo a dos brazos", "Curl de Bíceps", "LIBRE"],
+            free: ["LIBRE", "LIBRE", "LIBRE", "LIBRE", "LIBRE"]
         };
 
-        // PASSWORD
+        // INICIAR CONTEXTO DE AUDIO (Crucial para iOS/Android)
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                // Reproducir silencio para desbloquear
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start();
+            }
+        }
+
         function checkPassword() {
             const val = document.getElementById('app-password').value;
             if(val === APP_PASS) {
                 document.getElementById('lock-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                loadSavedData();
+                updateHistory();
             } else {
-                document.getElementById('error-msg').classList.remove('hidden');
+                const err = document.getElementById('error-msg');
+                err.classList.remove('hidden');
+                setTimeout(() => err.classList.add('hidden'), 2000);
             }
         }
 
-        // NAVEGACIÓN
         function showTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + tab).classList.add('active');
-            document.getElementById('current-title').innerText = tab === 'home' ? 'Mis Rutinas' : (tab === 'stats' ? 'Estadísticas' : 'Detalle');
+            
+            const titles = { 'home': 'Mis Rutinas', 'history': 'Diario Entrenamiento', 'cardio': 'Sesión Cardio', 'workout': 'Entrenando' };
+            document.getElementById('current-title').innerText = titles[tab] || 'Detalle';
+            
+            if(tab === 'history') updateHistory();
+        }
+
+        function openDay(day) {
+            currentDay = day;
+            if (day === 'cardio') return showTab('cardio');
+            
+            const list = document.getElementById('exercise-list');
+            list.innerHTML = '';
+            
+            const savedAll = JSON.parse(localStorage.getItem('gym_data') || '{}');
+            const dayData = savedAll[day]?.exercises || [];
+
+            baseWorkouts[day].forEach((exName, idx) => {
+                const savedEx = dayData[idx] || { name: exName, numSets: 3, sets: [] };
+                const isLibre = exName === "LIBRE" || !allExercises.includes(exName);
+                
+                const div = document.createElement('div');
+                div.className = "bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4";
+                
+                let headerHTML = `<div class="flex justify-between items-center">`;
+                if (isLibre || day === 'free') {
+                    headerHTML += `
+                        <select class="ex-name-input font-bold text-slate-800 bg-slate-50 border-none rounded-lg p-1 text-sm outline-none w-2/3">
+                            <option value="">Elegir Ejercicio...</option>
+                            ${allExercises.map(e => `<option value="${e}" ${savedEx.name === e ? 'selected' : ''}>${e}</option>`).join('')}
+                        </select>`;
+                } else {
+                    headerHTML += `<h4 class="font-bold text-slate-800">${exName}</h4>`;
+                }
+                
+                headerHTML += `
+                    <select onchange="handleSetChange(this, ${idx})" id="select-sets-${idx}" class="text-[10px] font-black uppercase tracking-tighter bg-blue-50 text-blue-600 rounded-full px-3 py-1 outline-none">
+                        ${[1,2,3,4,5,6].map(n => `<option value="${n}" ${savedEx.numSets == n ? 'selected' : ''}>${n} SERIES</option>`).join('')}
+                    </select>
+                </div>`;
+                
+                div.innerHTML = headerHTML + `<div id="sets-container-${idx}" class="space-y-2"></div>`;
+                list.appendChild(div);
+                renderSets(idx, savedEx.numSets, savedEx.sets);
+            });
+            
+            showTab('workout');
         }
 
         function renderSets(exerciseIdx, numSets, savedData = null) {
             const container = document.getElementById(`sets-container-${exerciseIdx}`);
             container.innerHTML = '';
             for (let i = 1; i <= numSets; i++) {
-                const weightVal = (savedData && savedData[i-1]) ? savedData[i-1].w : '';
-                const repsVal = (savedData && savedData[i-1]) ? savedData[i-1].r : '';
+                const w = (savedData && savedData[i-1]) ? savedData[i-1].w : '';
+                const r = (savedData && savedData[i-1]) ? savedData[i-1].r : '';
                 
                 const setDiv = document.createElement('div');
-                setDiv.className = "grid grid-cols-3 gap-2 items-center border-t border-gray-50 pt-2";
+                setDiv.className = "flex items-center space-x-3 bg-slate-50/50 p-2 rounded-xl border border-slate-50";
                 setDiv.innerHTML = `
-                    <span class="text-[10px] font-bold text-gray-400 uppercase italic">Serie ${i}</span>
-                    <input type="number" placeholder="Kg" data-ex="${exerciseIdx}" data-set="${i}" data-type="w" value="${weightVal}" class="bg-gray-50 rounded p-1 text-center text-sm focus:bg-white focus:ring-1 focus:ring-blue-300 outline-none">
-                    <input type="number" placeholder="Reps" data-ex="${exerciseIdx}" data-set="${i}" data-type="r" value="${repsVal}" class="bg-gray-50 rounded p-1 text-center text-sm focus:bg-white focus:ring-1 focus:ring-blue-300 outline-none">
+                    <span class="w-8 text-[10px] font-black text-slate-300 italic">S${i}</span>
+                    <div class="flex-1 flex items-center bg-white rounded-lg border border-slate-200 px-3 py-2">
+                        <input type="number" placeholder="Peso" data-ex="${exerciseIdx}" data-set="${i}" data-type="w" value="${w}" class="w-full text-center font-bold text-slate-700 outline-none text-sm">
+                        <span class="text-[9px] font-bold text-slate-400 ml-1">KG</span>
+                    </div>
+                    <div class="flex-1 flex items-center bg-white rounded-lg border border-slate-200 px-3 py-2">
+                        <input type="number" placeholder="Reps" data-ex="${exerciseIdx}" data-set="${i}" data-type="r" value="${r}" class="w-full text-center font-bold text-slate-700 outline-none text-sm">
+                        <span class="text-[9px] font-bold text-slate-400 ml-1">REPS</span>
+                    </div>
                 `;
                 container.appendChild(setDiv);
             }
@@ -207,57 +298,29 @@
             renderSets(idx, parseInt(select.value));
         }
 
-        function openDay(day) {
-            currentDay = day;
-            if (day === 'cardio') {
-                showTab('cardio');
-                document.getElementById('current-title').innerText = 'Sesión Cardio';
-                return;
-            }
-            
-            const list = document.getElementById('exercise-list');
-            list.innerHTML = '';
-            
-            const savedAll = JSON.parse(localStorage.getItem('gym_data') || '{}');
-            const dayData = savedAll[day]?.exercises || [];
-
-            workouts[day].forEach((ex, idx) => {
-                const savedEx = dayData[idx] || { numSets: 3, sets: [] };
-                const div = document.createElement('div');
-                div.className = "bg-white p-4 rounded-2xl shadow-sm border space-y-3";
-                div.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-slate-800">${ex}</h4>
-                        <select onchange="handleSetChange(this, ${idx})" id="select-sets-${idx}" class="text-xs bg-gray-100 rounded px-2 py-1 outline-none">
-                            ${[1,2,3,4,5,6].map(n => `<option value="${n}" ${savedEx.numSets == n ? 'selected' : ''}>${n} Series</option>`).join('')}
-                        </select>
-                    </div>
-                    <div id="sets-container-${idx}" class="space-y-2">
-                        <!-- Series dinámicas -->
-                    </div>
-                `;
-                list.appendChild(div);
-                renderSets(idx, savedEx.numSets, savedEx.sets);
-            });
-            
-            showTab('workout');
-            document.getElementById('current-title').innerText = day.toUpperCase();
-        }
-
-        // PERSISTENCIA
         function saveAllData() {
             const data = JSON.parse(localStorage.getItem('gym_data') || '{}');
+            const history = JSON.parse(localStorage.getItem('gym_history') || '[]');
             
+            let sessionEntry = { date: new Date().toLocaleString('es-ES'), day: currentDay, details: [] };
+
             if (currentDay === 'cardio') {
-                data['cardio'] = {
+                const cData = {
                     time: document.getElementById('cardio-time').value,
                     kcal: document.getElementById('cardio-kcal').value,
                     notes: document.getElementById('cardio-notes').value,
-                    date: new Date().toLocaleDateString()
+                    date: sessionEntry.date
                 };
+                data['cardio'] = cData;
+                sessionEntry.details.push(`Cardio: ${cData.time}min - ${cData.kcal}kcal`);
             } else if (currentDay) {
                 const dayData = [];
-                workouts[currentDay].forEach((_, idx) => {
+                const cards = document.querySelectorAll('#exercise-list > div');
+                cards.forEach((card, idx) => {
+                    const nameHeader = card.querySelector('h4');
+                    const nameSelect = card.querySelector('.ex-name-input');
+                    const name = nameHeader ? nameHeader.innerText : (nameSelect ? nameSelect.value : "Libre");
+                    
                     const numSets = document.getElementById(`select-sets-${idx}`).value;
                     const sets = [];
                     for(let i = 1; i <= numSets; i++) {
@@ -265,99 +328,141 @@
                         const r = document.querySelector(`input[data-ex="${idx}"][data-set="${i}"][data-type="r"]`).value;
                         sets.push({ w, r });
                     }
-                    dayData[idx] = { numSets, sets };
+                    dayData[idx] = { name, numSets, sets };
+                    if(sets[0]?.w) sessionEntry.details.push(`${name}: ${numSets} series`);
                 });
-                data[currentDay] = {
-                    exercises: dayData,
-                    date: new Date().toLocaleDateString()
-                };
+                data[currentDay] = { exercises: dayData, date: sessionEntry.date };
+            }
+            
+            if(sessionEntry.details.length > 0) {
+                history.unshift(sessionEntry);
+                localStorage.setItem('gym_history', JSON.stringify(history.slice(0, 50)));
             }
             
             localStorage.setItem('gym_data', JSON.stringify(data));
-            updateStats();
+            showTab('home');
             alert("¡Entrenamiento guardado!");
         }
 
-        function loadSavedData() {
-            updateStats();
+        function updateHistory() {
+            const history = JSON.parse(localStorage.getItem('gym_history') || '[]');
+            const list = document.getElementById('history-list');
+            list.innerHTML = history.length ? '' : '<p class="text-center text-slate-400 py-10">No hay historial.</p>';
+            
+            history.forEach(entry => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-2xl border border-slate-100 shadow-sm";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-black text-blue-500 uppercase">${entry.day}</span>
+                        <span class="text-[10px] font-bold text-slate-400">${entry.date}</span>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-1">
+                        ${entry.details.map(d => `<li>• ${d}</li>`).join('')}
+                    </ul>
+                `;
+                list.appendChild(div);
+            });
         }
 
-        // TEMPORIZADOR CUENTA ATRÁS
-        function setTimer(seconds) {
+        // --- SISTEMA DE TEMPORIZADOR REFORZADO ---
+
+        function userStartTimer(secs) {
+            initAudio(); // Desbloquear audio con interacción de usuario
+            setTimer(secs);
+        }
+
+        function setTimer(secs) {
+            remainingSeconds = secs;
+            startCalculatedTimer();
+        }
+
+        function startCalculatedTimer() {
             clearInterval(timerInterval);
-            isTimerRunning = false;
-            timeLeft = seconds;
-            updateTimerDisplay();
-            document.getElementById('timer-btn').classList.remove('timer-alert');
-            document.getElementById('timer-btn').classList.replace('bg-green-100', 'bg-blue-100');
-            toggleTimer(); 
+            timerEndTimestamp = Date.now() + (remainingSeconds * 1000);
+            isTimerPaused = false;
+            document.getElementById('timer-display-box').classList.remove('timer-alert');
+            timerInterval = setInterval(updateTimerLogic, 200);
+        }
+
+        function updateTimerLogic() {
+            if(isTimerPaused) return;
+            const now = Date.now();
+            const diff = timerEndTimestamp - now;
+            
+            if (diff <= 0) {
+                clearInterval(timerInterval);
+                remainingSeconds = 0;
+                updateDisplay(0);
+                triggerEmergencyAlert();
+                return;
+            }
+            remainingSeconds = Math.ceil(diff / 1000);
+            updateDisplay(remainingSeconds);
+        }
+
+        function updateDisplay(s) {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            document.getElementById('timer-display').innerText = `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+            if(s <= 5 && s > 0) document.getElementById('timer-display').classList.add('text-red-500');
+            else document.getElementById('timer-display').classList.remove('text-red-500');
+        }
+
+        function toggleTimer() {
+            initAudio();
+            if(remainingSeconds <= 0) return;
+            if(!isTimerPaused) {
+                clearInterval(timerInterval);
+                isTimerPaused = true;
+            } else {
+                startCalculatedTimer();
+            }
         }
 
         function resetTimer() {
             clearInterval(timerInterval);
-            isTimerRunning = false;
-            timeLeft = 0;
-            updateTimerDisplay();
-            document.getElementById('timer-btn').classList.remove('timer-alert');
-            document.getElementById('timer-btn').className = "p-2 flex flex-col items-center bg-blue-100 rounded-full h-14 w-14 justify-center shadow-inner transition-colors";
+            isTimerPaused = true;
+            remainingSeconds = 0;
+            updateDisplay(0);
+            document.getElementById('timer-display-box').classList.remove('timer-alert');
         }
 
-        function toggleTimer() {
-            if (timeLeft <= 0) return;
-
-            if (isTimerRunning) {
-                clearInterval(timerInterval);
-                isTimerRunning = false;
-                document.getElementById('timer-btn').classList.replace('bg-green-100', 'bg-blue-100');
-            } else {
-                isTimerRunning = true;
-                document.getElementById('timer-btn').classList.replace('bg-blue-100', 'bg-green-100');
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateTimerDisplay();
-
-                    if (timeLeft <= 5 && timeLeft > 0) {
-                        document.getElementById('timer-display').classList.add('text-red-500');
-                    } else {
-                        document.getElementById('timer-display').classList.remove('text-red-500');
-                    }
-
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        isTimerRunning = false;
-                        triggerAlert();
-                    }
-                }, 1000);
-            }
-        }
-
-        function updateTimerDisplay() {
-            const mins = Math.floor(Math.max(0, timeLeft) / 60);
-            const secs = Math.max(0, timeLeft) % 60;
-            document.getElementById('timer-display').innerText = 
-                `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-        }
-
-        function triggerAlert() {
-            document.getElementById('timer-btn').classList.add('timer-alert');
+        function triggerEmergencyAlert() {
+            document.getElementById('timer-display-box').classList.add('timer-alert');
+            
+            // 1. Vibrar agresivamente (3 veces largo)
             if ("vibrate" in navigator) {
-                navigator.vibrate([500, 200, 500]);
+                navigator.vibrate([1000, 500, 1000, 500, 1000]);
+            }
+
+            // 2. Tocar pitido electrónico (Beep)
+            if (audioCtx) {
+                const playBeep = (startTime) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = "square"; // Sonido más penetrante que 'sine'
+                    osc.frequency.setValueAtTime(1000, startTime);
+                    gain.gain.setValueAtTime(0.5, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.5);
+                };
+
+                const now = audioCtx.currentTime;
+                playBeep(now);
+                playBeep(now + 0.6);
+                playBeep(now + 1.2);
             }
         }
 
-        function updateStats() {
-            const data = JSON.parse(localStorage.getItem('gym_data') || '{}');
-            const summary = document.getElementById('stats-summary');
-            let html = '';
-            for (let day in data) {
-                if (day === 'cardio') {
-                    html += `<p class="text-xs"><strong>Cardio:</strong> ${data[day].kcal} kcal (${data[day].date})</p>`;
-                } else {
-                    html += `<p class="text-xs"><strong>${day.toUpperCase()}:</strong> ${data[day].date}</p>`;
-                }
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden && !isTimerPaused && timerEndTimestamp) {
+                updateTimerLogic();
             }
-            summary.innerHTML = html || '<p>Aún no hay datos registrados.</p>';
-        }
+        });
 
     </script>
 </body>
