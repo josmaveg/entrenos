@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workout Tracker Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        input[type="number"] { -moz-appearance: textfield; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        
+        @keyframes alert-pulse {
+            0% { background-color: #fee2e2; }
+            50% { background-color: #ef4444; }
+            100% { background-color: #fee2e2; }
+        }
+        .timer-alert { animation: alert-pulse 1s infinite; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen pb-24">
+
+    <!-- Pantalla de Bloqueo -->
+    <div id="lock-screen" class="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center p-6 text-white">
+        <h1 class="text-3xl font-bold mb-8">Gym Log</h1>
+        <div class="w-full max-w-xs space-y-4">
+            <input type="password" id="app-password" placeholder="Introduce contraseña" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 text-center text-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="checkPassword()" class="w-full bg-blue-600 hover:bg-blue-700 p-4 rounded-xl font-bold transition">Entrar</button>
+            <p id="error-msg" class="text-red-400 text-center hidden">Contraseña incorrecta</p>
+        </div>
+    </div>
+
+    <!-- App Principal -->
+    <div id="app" class="hidden">
+        <header class="p-4 bg-white border-b sticky top-0 z-30 flex justify-between items-center shadow-sm">
+            <h2 class="text-xl font-bold text-slate-800" id="current-title">Mis Rutinas</h2>
+            <button onclick="saveAllData()" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Guardar</button>
+        </header>
+
+        <main class="p-4 max-w-md mx-auto">
+            
+            <!-- VISTA: LISTADO DE DÍAS -->
+            <div id="view-home" class="tab-content active space-y-4">
+                <button onclick="openDay('push')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
+                    <div class="text-left">
+                        <span class="text-blue-500 font-bold uppercase text-xs">Día 1</span>
+                        <h3 class="text-xl font-bold">Empuje (Push)</h3>
+                    </div>
+                    <span class="text-gray-400">→</span>
+                </button>
+                <button onclick="openDay('legs')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
+                    <div class="text-left">
+                        <span class="text-green-500 font-bold uppercase text-xs">Día 2</span>
+                        <h3 class="text-xl font-bold">Pierna Completa</h3>
+                    </div>
+                    <span class="text-gray-400">→</span>
+                </button>
+                <button onclick="openDay('pull')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
+                    <div class="text-left">
+                        <span class="text-red-500 font-bold uppercase text-xs">Día 3</span>
+                        <h3 class="text-xl font-bold">Tracción (Pull)</h3>
+                    </div>
+                    <span class="text-gray-400">→</span>
+                </button>
+                <button onclick="openDay('free')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
+                    <div class="text-left">
+                        <span class="text-purple-500 font-bold uppercase text-xs">Día 4</span>
+                        <h3 class="text-xl font-bold">Día Libre</h3>
+                    </div>
+                    <span class="text-gray-400">→</span>
+                </button>
+                <button onclick="openDay('cardio')" class="w-full bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center">
+                    <div class="text-left">
+                        <span class="text-orange-500 font-bold uppercase text-xs">Día 5</span>
+                        <h3 class="text-xl font-bold">Cardio & Salud</h3>
+                    </div>
+                    <span class="text-gray-400">→</span>
+                </button>
+            </div>
+
+            <!-- VISTA: ENTRENAMIENTO DETALLE -->
+            <div id="view-workout" class="tab-content">
+                <div id="exercise-list" class="space-y-6">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <!-- VISTA: CARDIO -->
+            <div id="view-cardio" class="tab-content">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tiempo Total (min)</label>
+                        <input type="number" id="cardio-time" class="w-full mt-1 p-3 border rounded-xl" placeholder="Ej: 45">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Kcal Gastadas (Apple Watch)</label>
+                        <input type="number" id="cardio-kcal" class="w-full mt-1 p-3 border rounded-xl" placeholder="Ej: 350">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Notas/Tipo</label>
+                        <textarea id="cardio-notes" class="w-full mt-1 p-3 border rounded-xl" placeholder="Cinta, elíptica..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: ESTADÍSTICAS -->
+            <div id="view-stats" class="tab-content">
+                <div id="stats-container" class="space-y-4 text-center py-10 text-gray-500">
+                    <p>Las estadísticas se calcularán basándose en tus sesiones guardadas.</p>
+                    <div class="bg-white p-4 rounded-xl border text-left text-slate-800">
+                        <h4 class="font-bold">Resumen rápido</h4>
+                        <div id="stats-summary" class="mt-2 space-y-1">
+                            <!-- JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Navegación Inferior -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-2 glass z-40">
+            <div class="flex flex-col space-y-2">
+                <!-- Selectores de Tiempo de Descanso -->
+                <div class="flex justify-center space-x-2 pb-2 border-b">
+                    <button onclick="setTimer(60)" class="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-bold">60s</button>
+                    <button onclick="setTimer(90)" class="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-bold">90s</button>
+                    <button onclick="setTimer(120)" class="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-bold">120s</button>
+                    <button onclick="resetTimer()" class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-bold">Reset</button>
+                </div>
+                
+                <div class="flex justify-around items-center">
+                    <button onclick="showTab('home')" class="p-2 flex flex-col items-center">
+                        <span class="text-xl">🏋️</span>
+                        <span class="text-[10px] uppercase font-bold text-gray-600">Rutinas</span>
+                    </button>
+                    
+                    <button id="timer-btn" onclick="toggleTimer()" class="p-2 flex flex-col items-center bg-blue-100 rounded-full h-14 w-14 justify-center shadow-inner transition-colors">
+                        <span id="timer-display" class="font-mono text-sm font-bold">00:00</span>
+                    </button>
+                    
+                    <button onclick="showTab('stats')" class="p-2 flex flex-col items-center">
+                        <span class="text-xl">📊</span>
+                        <span class="text-[10px] uppercase font-bold text-gray-600">Stats</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN Y ESTADO
+        const APP_PASS = "1234"; 
+        let currentDay = '';
+        let timerInterval;
+        let timeLeft = 0; // Segundos restantes
+        let isTimerRunning = false;
+
+        const workouts = {
+            push: ["Press de Pecho", "Press Superior Hombro", "Elevaciones Laterales", "Extensión Tríceps Polea", "Ejercicio Libre"],
+            legs: ["Sentadilla Hack", "Extensión Cuádriceps", "Flexión Isquios", "Gemelo Elevación", "Peso Muerto"],
+            pull: ["Dominadas", "Jalón al Pecho", "Remo a dos brazos", "Curl de Bíceps", "Ejercicio Libre"],
+            free: ["Libre 1", "Libre 2", "Libre 3", "Libre 4", "Libre 5"]
+        };
+
+        // PASSWORD
+        function checkPassword() {
+            const val = document.getElementById('app-password').value;
+            if(val === APP_PASS) {
+                document.getElementById('lock-screen').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                loadSavedData();
+            } else {
+                document.getElementById('error-msg').classList.remove('hidden');
+            }
+        }
+
+        // NAVEGACIÓN
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + tab).classList.add('active');
+            document.getElementById('current-title').innerText = tab === 'home' ? 'Mis Rutinas' : (tab === 'stats' ? 'Estadísticas' : 'Detalle');
+        }
+
+        function openDay(day) {
+            currentDay = day;
+            if (day === 'cardio') {
+                showTab('cardio');
+                document.getElementById('current-title').innerText = 'Sesión Cardio';
+                return;
+            }
+            
+            const list = document.getElementById('exercise-list');
+            list.innerHTML = '';
+            
+            workouts[day].forEach((ex, idx) => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-2xl shadow-sm border space-y-3";
+                div.innerHTML = `
+                    <h4 class="font-bold text-slate-800">${ex}</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] uppercase text-gray-400 font-bold">Series x Reps</label>
+                            <input type="text" data-ex="${idx}" data-type="sets" class="w-full border-b p-1 text-lg focus:outline-none focus:border-blue-500" placeholder="4x12">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-gray-400 font-bold">Peso (kg)</label>
+                            <input type="number" data-ex="${idx}" data-type="weight" class="w-full border-b p-1 text-lg focus:outline-none focus:border-blue-500" placeholder="0">
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            
+            showTab('workout');
+            document.getElementById('current-title').innerText = day.toUpperCase();
+            loadWorkoutValues(day);
+        }
+
+        // PERSISTENCIA
+        function saveAllData() {
+            const data = JSON.parse(localStorage.getItem('gym_data') || '{}');
+            
+            if (currentDay === 'cardio') {
+                data['cardio'] = {
+                    time: document.getElementById('cardio-time').value,
+                    kcal: document.getElementById('cardio-kcal').value,
+                    notes: document.getElementById('cardio-notes').value,
+                    date: new Date().toLocaleDateString()
+                };
+            } else if (currentDay) {
+                const dayData = [];
+                document.querySelectorAll('#exercise-list input').forEach(input => {
+                    const idx = input.dataset.ex;
+                    const type = input.dataset.type;
+                    if (!dayData[idx]) dayData[idx] = {};
+                    dayData[idx][type] = input.value;
+                });
+                data[currentDay] = {
+                    exercises: dayData,
+                    date: new Date().toLocaleDateString()
+                };
+            }
+            
+            localStorage.setItem('gym_data', JSON.stringify(data));
+            updateStats();
+            alert("¡Guardado correctamente!");
+        }
+
+        function loadSavedData() {
+            updateStats();
+        }
+
+        function loadWorkoutValues(day) {
+            const data = JSON.parse(localStorage.getItem('gym_data') || '{}');
+            if (data[day]) {
+                const savedEx = data[day].exercises;
+                document.querySelectorAll('#exercise-list input').forEach(input => {
+                    const idx = input.dataset.ex;
+                    const type = input.dataset.type;
+                    if (savedEx[idx]) input.value = savedEx[idx][type] || '';
+                });
+            }
+        }
+
+        // TEMPORIZADOR CUENTA ATRÁS
+        function setTimer(seconds) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = seconds;
+            updateTimerDisplay();
+            document.getElementById('timer-btn').classList.remove('timer-alert');
+            document.getElementById('timer-btn').classList.replace('bg-green-100', 'bg-blue-100');
+            toggleTimer(); // Iniciar automáticamente al seleccionar
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 0;
+            updateTimerDisplay();
+            document.getElementById('timer-btn').classList.remove('timer-alert');
+            document.getElementById('timer-btn').className = "p-2 flex flex-col items-center bg-blue-100 rounded-full h-14 w-14 justify-center shadow-inner transition-colors";
+        }
+
+        function toggleTimer() {
+            if (timeLeft <= 0) return;
+
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                document.getElementById('timer-btn').classList.replace('bg-green-100', 'bg-blue-100');
+            } else {
+                isTimerRunning = true;
+                document.getElementById('timer-btn').classList.replace('bg-blue-100', 'bg-green-100');
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+
+                    if (timeLeft <= 5 && timeLeft > 0) {
+                        document.getElementById('timer-display').classList.add('text-red-500');
+                    } else {
+                        document.getElementById('timer-display').classList.remove('text-red-500');
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        triggerAlert();
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(Math.max(0, timeLeft) / 60);
+            const secs = Math.max(0, timeLeft) % 60;
+            document.getElementById('timer-display').innerText = 
+                `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }
+
+        function triggerAlert() {
+            document.getElementById('timer-btn').classList.add('timer-alert');
+            // Intentar vibrar (Pattern: vibrar 500ms, pausa 200ms, vibrar 500ms)
+            if ("vibrate" in navigator) {
+                navigator.vibrate([500, 200, 500, 200, 500]);
+            }
+        }
+
+        function updateStats() {
+            const data = JSON.parse(localStorage.getItem('gym_data') || '{}');
+            const summary = document.getElementById('stats-summary');
+            let html = '';
+            for (let day in data) {
+                if (day === 'cardio') {
+                    html += `<p class="text-xs"><strong>Cardio:</strong> ${data[day].kcal} kcal (${data[day].date})</p>`;
+                } else {
+                    html += `<p class="text-xs"><strong>${day.toUpperCase()}:</strong> ${data[day].date}</p>`;
+                }
+            }
+            summary.innerHTML = html || '<p>Aún no hay datos registrados.</p>';
+        }
+
+    </script>
+</body>
+</html>
