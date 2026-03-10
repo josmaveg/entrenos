@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Workout Tracker Pro</title>
+    <title>GymLog Analytics & Hypertrophy</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         input[type="number"] { -moz-appearance: textfield; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        
         @keyframes alert-pulse {
             0% { background-color: #ffffff; }
             50% { background-color: #ef4444; color: white; }
@@ -21,449 +21,338 @@
         .timer-alert { animation: alert-pulse 0.5s infinite; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-32">
+<body class="bg-slate-100 min-h-screen pb-32">
 
-    <!-- Pantalla de Bloqueo -->
+    <!-- Bloqueo -->
     <div id="lock-screen" class="fixed inset-0 z-[60] bg-slate-900 flex flex-col items-center justify-center p-6 text-white">
-        <div class="text-center space-y-2 mb-8">
-            <h1 class="text-4xl font-black tracking-tight">GYM<span class="text-blue-500">LOG</span></h1>
-            <p class="text-slate-400 text-sm uppercase tracking-widest">Personal Training Assistant</p>
-        </div>
+        <h1 class="text-4xl font-black mb-8">GYM<span class="text-blue-500">LOG</span></h1>
         <div class="w-full max-w-xs space-y-4">
-            <input type="password" id="app-password" pattern="[0-9]*" inputmode="numeric" placeholder="Contraseña" class="w-full p-4 rounded-2xl bg-slate-800 border border-slate-700 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            <button onclick="checkPassword()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 p-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-900/20 transition-all">Entrar</button>
-            <p id="error-msg" class="text-red-400 text-center text-sm font-medium hidden">Contraseña incorrecta</p>
+            <input type="password" id="app-password" pattern="[0-9]*" inputmode="numeric" placeholder="PIN" class="w-full p-4 rounded-2xl bg-slate-800 text-center text-2xl outline-none border border-slate-700">
+            <button onclick="checkPassword()" class="w-full bg-blue-600 p-4 rounded-2xl font-bold text-lg active:scale-95 transition-all">Entrar</button>
         </div>
     </div>
 
-    <!-- App Principal -->
+    <!-- App -->
     <div id="app" class="hidden">
-        <header class="p-4 bg-white/80 border-b sticky top-0 z-30 flex justify-between items-center glass">
-            <h2 class="text-xl font-extrabold text-slate-800" id="current-title">Mis Rutinas</h2>
-            <button id="save-btn" onclick="saveAllData()" class="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md active:scale-95 transition-all">Guardar</button>
+        <header class="p-4 bg-white border-b sticky top-0 z-30 flex justify-between items-center glass">
+            <h2 class="text-xl font-black text-slate-800" id="current-title">Mis Rutinas</h2>
+            <button onclick="saveAllData()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg">Guardar</button>
         </header>
 
-        <main class="p-4 max-w-md mx-auto">
+        <main class="p-4 max-w-md mx-auto space-y-6">
             
-            <!-- VISTA: LISTADO DE DÍAS -->
-            <div id="view-home" class="tab-content active space-y-4">
-                <div onclick="openDay('push')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-xl">🔥</div>
-                        <div>
-                            <span class="text-blue-500 font-bold uppercase text-[10px] tracking-wider">Día 1</span>
-                            <h3 class="text-lg font-bold text-slate-800">Empuje (Push)</h3>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">→</span>
-                </div>
-                <div onclick="openDay('legs')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-xl">🦵</div>
-                        <div>
-                            <span class="text-green-500 font-bold uppercase text-[10px] tracking-wider">Día 2</span>
-                            <h3 class="text-lg font-bold text-slate-800">Pierna Completa</h3>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">→</span>
-                </div>
-                <div onclick="openDay('pull')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-xl">🦾</div>
-                        <div>
-                            <span class="text-red-500 font-bold uppercase text-[10px] tracking-wider">Día 3</span>
-                            <h3 class="text-lg font-bold text-slate-800">Tracción (Pull)</h3>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">→</span>
-                </div>
-                <div onclick="openDay('free')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-xl">✨</div>
-                        <div>
-                            <span class="text-purple-500 font-bold uppercase text-[10px] tracking-wider">Día 4</span>
-                            <h3 class="text-lg font-bold text-slate-800">Día Libre</h3>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">→</span>
-                </div>
-                <div onclick="openDay('cardio')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-xl">🏃</div>
-                        <div>
-                            <span class="text-orange-500 font-bold uppercase text-[10px] tracking-wider">Día 5</span>
-                            <h3 class="text-lg font-bold text-slate-800">Cardio & Salud</h3>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">→</span>
-                </div>
+            <!-- VISTA: HOME (RUTINAS) -->
+            <div id="view-home" class="tab-content active space-y-3">
+                <button onclick="openDay('push')" class="w-full bg-white p-5 rounded-3xl shadow-sm flex items-center justify-between border border-slate-200">
+                    <div class="flex items-center space-x-4"><div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-xl">🔥</div><div><p class="text-[10px] font-bold text-blue-500 uppercase">Push</p><h3 class="font-bold">Pecho, Hombro, Tríceps</h3></div></div>
+                    <span>→</span>
+                </button>
+                <button onclick="openDay('legs')" class="w-full bg-white p-5 rounded-3xl shadow-sm flex items-center justify-between border border-slate-200">
+                    <div class="flex items-center space-x-4"><div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-xl">🦵</div><div><p class="text-[10px] font-bold text-green-500 uppercase">Legs</p><h3 class="font-bold">Pierna Completa</h3></div></div>
+                    <span>→</span>
+                </button>
+                <button onclick="openDay('pull')" class="w-full bg-white p-5 rounded-3xl shadow-sm flex items-center justify-between border border-slate-200">
+                    <div class="flex items-center space-x-4"><div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-xl">🦾</div><div><p class="text-[10px] font-bold text-red-500 uppercase">Pull</p><h3 class="font-bold">Espalda, Bíceps</h3></div></div>
+                    <span>→</span>
+                </button>
+                <button onclick="openDay('free')" class="w-full bg-white p-5 rounded-3xl shadow-sm flex items-center justify-between border border-slate-200">
+                    <div class="flex items-center space-x-4"><div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-xl">✨</div><div><p class="text-[10px] font-bold text-purple-500 uppercase">Free</p><h3 class="font-bold">Personalizado</h3></div></div>
+                    <span>→</span>
+                </button>
             </div>
 
-            <!-- VISTA: ENTRENAMIENTO DETALLE -->
+            <!-- VISTA: MÉTRICAS SEMANALES -->
+            <div id="view-stats" class="tab-content space-y-6">
+                <!-- Gráfico de Evolución Semanal -->
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-tighter">Volumen Semanal (Sobrecarga)</h3>
+                    <canvas id="weeklyChart" class="w-full h-48"></canvas>
+                </div>
+
+                <!-- Resumen de Hipertrofia -->
+                <div id="hipertrofia-alert" class="p-4 rounded-2xl border flex flex-col items-center text-center space-y-1">
+                    <!-- Dinámico -->
+                </div>
+
+                <!-- Botón Exportar -->
+                <button onclick="exportToCSV()" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-bold flex items-center justify-center space-x-2">
+                    <span>📊</span><span>Exportar Excel (.csv)</span>
+                </button>
+
+                <!-- Historial con mini-gráficos -->
+                <div id="history-list" class="space-y-4"></div>
+            </div>
+
+            <!-- VISTA: ENTRENAMIENTO -->
             <div id="view-workout" class="tab-content">
-                <div id="exercise-list" class="space-y-6 mb-8">
-                    <!-- Dinámico -->
-                </div>
-            </div>
-
-            <!-- VISTA: CARDIO -->
-            <div id="view-cardio" class="tab-content">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-6">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold uppercase text-slate-400">Tiempo Total (minutos)</label>
-                        <input type="number" id="cardio-time" class="w-full p-4 bg-slate-50 rounded-2xl text-xl font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all" placeholder="0">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold uppercase text-slate-400">Kcal Gastadas (Apple Watch)</label>
-                        <input type="number" id="cardio-kcal" class="w-full p-4 bg-slate-50 rounded-2xl text-xl font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all" placeholder="0">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold uppercase text-slate-400">Notas de la sesión</label>
-                        <textarea id="cardio-notes" rows="3" class="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 transition-all" placeholder="Ej: Intervalos en cinta..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VISTA: DIARIO -->
-            <div id="view-history" class="tab-content">
-                <div id="history-list" class="space-y-4">
-                    <!-- Dinámico -->
-                </div>
+                <div id="exercise-list" class="space-y-6"></div>
             </div>
 
         </main>
 
-        <!-- Navegación Inferior -->
-        <nav class="fixed bottom-0 left-0 right-0 p-4 pb-6 glass z-40 border-t border-white/20">
-            <div class="max-w-md mx-auto flex flex-col space-y-4">
-                
-                <!-- Controles Temporizador -->
-                <div id="timer-ui" class="flex items-center justify-between bg-white rounded-2xl p-2 shadow-sm border border-slate-100">
+        <!-- Navegación y Timer -->
+        <nav class="fixed bottom-0 left-0 right-0 p-4 pb-8 glass z-40 border-t">
+            <div class="max-w-md mx-auto space-y-4">
+                <div id="timer-ui" class="bg-white rounded-2xl p-2 flex items-center justify-between shadow-sm border">
                     <div class="flex space-x-1 pl-1">
-                        <button onclick="userStartTimer(60)" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-xl text-[11px] font-bold">60s</button>
-                        <button onclick="userStartTimer(90)" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-xl text-[11px] font-bold">90s</button>
-                        <button onclick="userStartTimer(120)" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-xl text-[11px] font-bold">120s</button>
+                        <button onclick="userStartTimer(60)" class="w-10 h-10 bg-slate-100 rounded-xl text-[10px] font-bold">60s</button>
+                        <button onclick="userStartTimer(90)" class="w-10 h-10 bg-slate-100 rounded-xl text-[10px] font-bold">90s</button>
+                        <button onclick="userStartTimer(120)" class="w-10 h-10 bg-slate-100 rounded-xl text-[10px] font-bold">120s</button>
                     </div>
-                    <div id="timer-display-box" onclick="toggleTimer()" class="flex-1 text-center cursor-pointer h-10 flex items-center justify-center rounded-xl transition-all">
-                        <span id="timer-display" class="font-mono text-xl font-black text-slate-800">00:00</span>
-                    </div>
-                    <button onclick="resetTimer()" class="w-10 h-10 flex items-center justify-center text-red-500 bg-red-50 rounded-xl mr-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                    <div id="timer-display-box" onclick="toggleTimer()" class="flex-1 text-center cursor-pointer h-10 flex items-center justify-center font-mono text-xl font-black">00:00</div>
+                    <button onclick="resetTimer()" class="w-10 h-10 text-red-500 bg-red-50 rounded-xl mr-1 font-bold">↺</button>
                 </div>
-
-                <!-- Botones Principales -->
-                <div class="flex justify-around items-center px-4">
-                    <button onclick="showTab('home')" class="flex flex-col items-center group">
-                        <span class="text-2xl opacity-60 group-active:scale-125 transition-transform">📋</span>
-                        <span class="text-[10px] font-bold text-slate-500 uppercase mt-1">Rutinas</span>
-                    </button>
-                    <button onclick="showTab('history')" class="flex flex-col items-center group">
-                        <span class="text-2xl opacity-60 group-active:scale-125 transition-transform">📖</span>
-                        <span class="text-[10px] font-bold text-slate-500 uppercase mt-1">Diario</span>
-                    </button>
+                <div class="flex justify-around items-center">
+                    <button onclick="showTab('home')" class="flex flex-col items-center"><span class="text-2xl">📋</span><span class="text-[9px] font-black uppercase text-slate-500">Rutinas</span></button>
+                    <button onclick="showTab('stats')" class="flex flex-col items-center"><span class="text-2xl">📉</span><span class="text-[9px] font-black uppercase text-slate-500">Métricas</span></button>
                 </div>
             </div>
         </nav>
     </div>
 
     <script>
-        const APP_PASS = "1234";
+        const PIN = "1234";
         let currentDay = '';
-        
         let timerEndTimestamp = null;
         let timerInterval = null;
         let isTimerPaused = true;
         let remainingSeconds = 0;
         let audioCtx = null;
+        let charts = {};
 
-        const allExercises = [
-            "Press de Pecho", "Press Superior Hombro", "Elevaciones Laterales", "Extensión Tríceps Polea",
-            "Sentadilla Hack", "Extensión Cuádriceps", "Flexión Isquios", "Gemelo Elevación", "Peso Muerto",
-            "Dominadas", "Jalón al Pecho", "Remo a dos brazos", "Curl de Bíceps"
-        ];
-
-        const baseWorkouts = {
-            push: ["Press de Pecho", "Press Superior Hombro", "Elevaciones Laterales", "Extensión Tríceps Polea", "LIBRE"],
-            legs: ["Sentadilla Hack", "Extensión Cuádriceps", "Flexión Isquios", "Gemelo Elevación", "Peso Muerto"],
-            pull: ["Dominadas", "Jalón al Pecho", "Remo a dos brazos", "Curl de Bíceps", "LIBRE"],
-            free: ["LIBRE", "LIBRE", "LIBRE", "LIBRE", "LIBRE"]
-        };
-
-        // INICIAR CONTEXTO DE AUDIO (Crucial para iOS/Android)
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                // Reproducir silencio para desbloquear
-                const buffer = audioCtx.createBuffer(1, 1, 22050);
-                const source = audioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.connect(audioCtx.destination);
-                source.start();
-            }
-        }
+        const exercisesDB = ["Press de Pecho", "Sentadilla", "Peso Muerto", "Dominadas", "Press Militar", "Curl Bíceps", "Elevaciones Laterales", "Zancadas"];
 
         function checkPassword() {
-            const val = document.getElementById('app-password').value;
-            if(val === APP_PASS) {
+            if(document.getElementById('app-password').value === PIN) {
                 document.getElementById('lock-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                updateHistory();
-            } else {
-                const err = document.getElementById('error-msg');
-                err.classList.remove('hidden');
-                setTimeout(() => err.classList.add('hidden'), 2000);
+                calculateMetrics();
             }
         }
 
         function showTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + tab).classList.add('active');
-            
-            const titles = { 'home': 'Mis Rutinas', 'history': 'Diario Entrenamiento', 'cardio': 'Sesión Cardio', 'workout': 'Entrenando' };
-            document.getElementById('current-title').innerText = titles[tab] || 'Detalle';
-            
-            if(tab === 'history') updateHistory();
+            if(tab === 'stats') calculateMetrics();
         }
 
         function openDay(day) {
             currentDay = day;
-            if (day === 'cardio') return showTab('cardio');
-            
             const list = document.getElementById('exercise-list');
             list.innerHTML = '';
-            
-            const savedAll = JSON.parse(localStorage.getItem('gym_data') || '{}');
-            const dayData = savedAll[day]?.exercises || [];
+            const workouts = {
+                push: ["Press de Pecho", "Press Superior", "Elevaciones Laterales", "Extensión Tríceps"],
+                legs: ["Sentadilla Hack", "Extensión Cuádriceps", "Flexión Isquios", "Prensa"],
+                pull: ["Dominadas", "Remo en Polea", "Jalón al Pecho", "Curl de Bíceps"],
+                free: ["LIBRE", "LIBRE", "LIBRE", "LIBRE"]
+            };
 
-            baseWorkouts[day].forEach((exName, idx) => {
-                const savedEx = dayData[idx] || { name: exName, numSets: 3, sets: [] };
-                const isLibre = exName === "LIBRE" || !allExercises.includes(exName);
-                
+            workouts[day].forEach((ex, idx) => {
                 const div = document.createElement('div');
-                div.className = "bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4";
-                
-                let headerHTML = `<div class="flex justify-between items-center">`;
-                if (isLibre || day === 'free') {
-                    headerHTML += `
-                        <select class="ex-name-input font-bold text-slate-800 bg-slate-50 border-none rounded-lg p-1 text-sm outline-none w-2/3">
-                            <option value="">Elegir Ejercicio...</option>
-                            ${allExercises.map(e => `<option value="${e}" ${savedEx.name === e ? 'selected' : ''}>${e}</option>`).join('')}
-                        </select>`;
-                } else {
-                    headerHTML += `<h4 class="font-bold text-slate-800">${exName}</h4>`;
-                }
-                
-                headerHTML += `
-                    <select onchange="handleSetChange(this, ${idx})" id="select-sets-${idx}" class="text-[10px] font-black uppercase tracking-tighter bg-blue-50 text-blue-600 rounded-full px-3 py-1 outline-none">
-                        ${[1,2,3,4,5,6].map(n => `<option value="${n}" ${savedEx.numSets == n ? 'selected' : ''}>${n} SERIES</option>`).join('')}
-                    </select>
-                </div>`;
-                
-                div.innerHTML = headerHTML + `<div id="sets-container-${idx}" class="space-y-2"></div>`;
+                div.className = "bg-white p-5 rounded-3xl border border-slate-200 space-y-4";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        ${ex === 'LIBRE' ? `<select class="ex-name font-bold bg-slate-50 p-1 rounded-lg text-sm">${exercisesDB.map(e => `<option value="${e}">${e}</option>`).join('')}</select>` : `<h4 class="font-bold ex-name">${ex}</h4>`}
+                        <select onchange="renderSets(${idx}, this.value)" id="sets-${idx}" class="text-[10px] font-black bg-blue-50 text-blue-600 rounded-full px-3 py-1 outline-none">
+                            <option value="3">3 SERIES</option><option value="4">4 SERIES</option><option value="5">5 SERIES</option>
+                        </select>
+                    </div>
+                    <div id="container-${idx}" class="space-y-2"></div>
+                `;
                 list.appendChild(div);
-                renderSets(idx, savedEx.numSets, savedEx.sets);
+                renderSets(idx, 3);
             });
-            
             showTab('workout');
         }
 
-        function renderSets(exerciseIdx, numSets, savedData = null) {
-            const container = document.getElementById(`sets-container-${exerciseIdx}`);
+        function renderSets(exIdx, num) {
+            const container = document.getElementById(`container-${exIdx}`);
             container.innerHTML = '';
-            for (let i = 1; i <= numSets; i++) {
-                const w = (savedData && savedData[i-1]) ? savedData[i-1].w : '';
-                const r = (savedData && savedData[i-1]) ? savedData[i-1].r : '';
-                
-                const setDiv = document.createElement('div');
-                setDiv.className = "flex items-center space-x-3 bg-slate-50/50 p-2 rounded-xl border border-slate-50";
-                setDiv.innerHTML = `
-                    <span class="w-8 text-[10px] font-black text-slate-300 italic">S${i}</span>
-                    <div class="flex-1 flex items-center bg-white rounded-lg border border-slate-200 px-3 py-2">
-                        <input type="number" placeholder="Peso" data-ex="${exerciseIdx}" data-set="${i}" data-type="w" value="${w}" class="w-full text-center font-bold text-slate-700 outline-none text-sm">
-                        <span class="text-[9px] font-bold text-slate-400 ml-1">KG</span>
-                    </div>
-                    <div class="flex-1 flex items-center bg-white rounded-lg border border-slate-200 px-3 py-2">
-                        <input type="number" placeholder="Reps" data-ex="${exerciseIdx}" data-set="${i}" data-type="r" value="${r}" class="w-full text-center font-bold text-slate-700 outline-none text-sm">
-                        <span class="text-[9px] font-bold text-slate-400 ml-1">REPS</span>
+            for(let i=1; i<=num; i++) {
+                container.innerHTML += `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[9px] font-bold text-slate-300 w-4">S${i}</span>
+                        <input type="number" placeholder="Kg" class="w-full p-2 bg-slate-50 rounded-xl text-center font-bold text-sm weight-input" data-ex="${exIdx}">
+                        <input type="number" placeholder="Reps" class="w-full p-2 bg-slate-50 rounded-xl text-center font-bold text-sm reps-input" data-ex="${exIdx}">
                     </div>
                 `;
-                container.appendChild(setDiv);
             }
-        }
-
-        function handleSetChange(select, idx) {
-            renderSets(idx, parseInt(select.value));
         }
 
         function saveAllData() {
-            const data = JSON.parse(localStorage.getItem('gym_data') || '{}');
             const history = JSON.parse(localStorage.getItem('gym_history') || '[]');
-            
-            let sessionEntry = { date: new Date().toLocaleString('es-ES'), day: currentDay, details: [] };
+            const session = {
+                date: new Date().toLocaleDateString('es-ES'),
+                timestamp: Date.now(),
+                day: currentDay,
+                exercises: [],
+                totalVolume: 0
+            };
 
-            if (currentDay === 'cardio') {
-                const cData = {
-                    time: document.getElementById('cardio-time').value,
-                    kcal: document.getElementById('cardio-kcal').value,
-                    notes: document.getElementById('cardio-notes').value,
-                    date: sessionEntry.date
-                };
-                data['cardio'] = cData;
-                sessionEntry.details.push(`Cardio: ${cData.time}min - ${cData.kcal}kcal`);
-            } else if (currentDay) {
-                const dayData = [];
-                const cards = document.querySelectorAll('#exercise-list > div');
-                cards.forEach((card, idx) => {
-                    const nameHeader = card.querySelector('h4');
-                    const nameSelect = card.querySelector('.ex-name-input');
-                    const name = nameHeader ? nameHeader.innerText : (nameSelect ? nameSelect.value : "Libre");
-                    
-                    const numSets = document.getElementById(`select-sets-${idx}`).value;
-                    const sets = [];
-                    for(let i = 1; i <= numSets; i++) {
-                        const w = document.querySelector(`input[data-ex="${idx}"][data-set="${i}"][data-type="w"]`).value;
-                        const r = document.querySelector(`input[data-ex="${idx}"][data-set="${i}"][data-type="r"]`).value;
-                        sets.push({ w, r });
-                    }
-                    dayData[idx] = { name, numSets, sets };
-                    if(sets[0]?.w) sessionEntry.details.push(`${name}: ${numSets} series`);
+            document.querySelectorAll('#exercise-list > div').forEach((card, idx) => {
+                const name = card.querySelector('.ex-name').value || card.querySelector('.ex-name').innerText;
+                const weights = card.querySelectorAll('.weight-input');
+                const reps = card.querySelectorAll('.reps-input');
+                let exVol = 0;
+                let setsData = [];
+                weights.forEach((w, i) => {
+                    const weight = parseFloat(w.value) || 0;
+                    const rep = parseFloat(reps[i].value) || 0;
+                    exVol += weight * rep;
+                    setsData.push({w: weight, r: rep});
                 });
-                data[currentDay] = { exercises: dayData, date: sessionEntry.date };
-            }
-            
-            if(sessionEntry.details.length > 0) {
-                history.unshift(sessionEntry);
+                if(exVol > 0) {
+                    session.exercises.push({name, volume: exVol, sets: setsData});
+                    session.totalVolume += exVol;
+                }
+            });
+
+            if(session.totalVolume > 0) {
+                history.unshift(session);
                 localStorage.setItem('gym_history', JSON.stringify(history.slice(0, 50)));
+                alert("Entrenamiento guardado.");
+                showTab('stats');
             }
-            
-            localStorage.setItem('gym_data', JSON.stringify(data));
-            showTab('home');
-            alert("¡Entrenamiento guardado!");
         }
 
-        function updateHistory() {
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+        function calculateMetrics() {
             const history = JSON.parse(localStorage.getItem('gym_history') || '[]');
-            const list = document.getElementById('history-list');
-            list.innerHTML = history.length ? '' : '<p class="text-center text-slate-400 py-10">No hay historial.</p>';
+            const weeklyData = {};
             
-            history.forEach(entry => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-4 rounded-2xl border border-slate-100 shadow-sm";
-                div.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-[10px] font-black text-blue-500 uppercase">${entry.day}</span>
-                        <span class="text-[10px] font-bold text-slate-400">${entry.date}</span>
-                    </div>
-                    <ul class="text-xs text-slate-600 space-y-1">
-                        ${entry.details.map(d => `<li>• ${d}</li>`).join('')}
-                    </ul>
+            // Agrupar por semana
+            history.forEach(session => {
+                const date = new Date(session.timestamp);
+                const week = `Sem ${getWeekNumber(date)}`;
+                weeklyData[week] = (weeklyData[week] || 0) + session.totalVolume;
+            });
+
+            // Actualizar Gráfico Principal
+            const weeks = Object.keys(weeklyData).reverse();
+            const volumes = weeks.map(w => weeklyData[w]);
+
+            if(charts.weekly) charts.weekly.destroy();
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            charts.weekly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weeks,
+                    datasets: [{
+                        label: 'Volumen Kg',
+                        data: volumes,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // Alerta de Hipertrofia
+            const alertBox = document.getElementById('hipertrofia-alert');
+            if(volumes.length >= 2) {
+                const current = volumes[volumes.length-1];
+                const prev = volumes[volumes.length-2];
+                const diff = (((current - prev) / prev) * 100).toFixed(1);
+                const isPos = diff >= 0;
+                alertBox.className = `p-4 rounded-3xl border flex flex-col items-center text-center space-y-1 ${isPos ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`;
+                alertBox.innerHTML = `
+                    <span class="text-[10px] font-black uppercase text-slate-400">Progreso Semanal</span>
+                    <h4 class="text-2xl font-black ${isPos ? 'text-green-600' : 'text-red-600'}">${isPos ? '↑' : '↓'} ${Math.abs(diff)}%</h4>
+                    <p class="text-xs font-bold text-slate-600">${isPos ? '¡Sobrecarga aplicada! Sigues creciendo.' : 'Baja de volumen. Revisa descansos o cargas.'}</p>
                 `;
-                list.appendChild(div);
+            }
+
+            // Historial con Gráficos por Sesión
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            history.forEach((session, sIdx) => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div><p class="text-[9px] font-black text-blue-500 uppercase">${session.day}</p><h4 class="font-bold text-sm">${session.date}</h4></div>
+                        <div class="text-right"><p class="text-[9px] font-bold text-slate-300">TOTAL</p><p class="text-lg font-black">${session.totalVolume} kg</p></div>
+                    </div>
+                    <canvas id="sessionChart-${sIdx}" class="w-full h-32"></canvas>
+                `;
+                historyList.appendChild(div);
+
+                setTimeout(() => {
+                    const sCtx = document.getElementById(`sessionChart-${sIdx}`).getContext('2d');
+                    new Chart(sCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: session.exercises.map(e => e.name.substring(0, 10)),
+                            datasets: [{
+                                data: session.exercises.map(e => e.volume),
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 8
+                            }]
+                        },
+                        options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { display: false } } } }
+                    });
+                }, 100);
             });
         }
 
-        // --- SISTEMA DE TEMPORIZADOR REFORZADO ---
-
-        function userStartTimer(secs) {
-            initAudio(); // Desbloquear audio con interacción de usuario
-            setTimer(secs);
+        function exportToCSV() {
+            const history = JSON.parse(localStorage.getItem('gym_history') || '[]');
+            let csv = "Fecha,Rutina,Ejercicio,Volumen_Total\n";
+            history.forEach(s => { s.exercises.forEach(e => { csv += `${s.date},${s.day},${e.name},${e.volume}\n`; }); });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `entrenos_gymlog.csv`;
+            a.click();
         }
 
-        function setTimer(secs) {
-            remainingSeconds = secs;
-            startCalculatedTimer();
-        }
-
-        function startCalculatedTimer() {
+        // --- TIMER REFORZADO ---
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function userStartTimer(secs) { initAudio(); remainingSeconds = secs; startTimer(); }
+        function startTimer() {
             clearInterval(timerInterval);
             timerEndTimestamp = Date.now() + (remainingSeconds * 1000);
             isTimerPaused = false;
             document.getElementById('timer-display-box').classList.remove('timer-alert');
-            timerInterval = setInterval(updateTimerLogic, 200);
+            timerInterval = setInterval(() => {
+                const diff = timerEndTimestamp - Date.now();
+                if(diff <= 0) { 
+                    clearInterval(timerInterval); 
+                    triggerAlert(); 
+                    remainingSeconds = 0; 
+                } else { 
+                    remainingSeconds = Math.ceil(diff/1000); 
+                }
+                const m = Math.floor(remainingSeconds/60);
+                const s = remainingSeconds%60;
+                document.getElementById('timer-display-box').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }, 200);
         }
-
-        function updateTimerLogic() {
-            if(isTimerPaused) return;
-            const now = Date.now();
-            const diff = timerEndTimestamp - now;
-            
-            if (diff <= 0) {
-                clearInterval(timerInterval);
-                remainingSeconds = 0;
-                updateDisplay(0);
-                triggerEmergencyAlert();
-                return;
-            }
-            remainingSeconds = Math.ceil(diff / 1000);
-            updateDisplay(remainingSeconds);
-        }
-
-        function updateDisplay(s) {
-            const m = Math.floor(s / 60);
-            const sec = s % 60;
-            document.getElementById('timer-display').innerText = `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
-            if(s <= 5 && s > 0) document.getElementById('timer-display').classList.add('text-red-500');
-            else document.getElementById('timer-display').classList.remove('text-red-500');
-        }
-
-        function toggleTimer() {
-            initAudio();
-            if(remainingSeconds <= 0) return;
-            if(!isTimerPaused) {
-                clearInterval(timerInterval);
-                isTimerPaused = true;
-            } else {
-                startCalculatedTimer();
-            }
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            isTimerPaused = true;
-            remainingSeconds = 0;
-            updateDisplay(0);
-            document.getElementById('timer-display-box').classList.remove('timer-alert');
-        }
-
-        function triggerEmergencyAlert() {
+        function toggleTimer() { initAudio(); isTimerPaused ? startTimer() : (clearInterval(timerInterval), isTimerPaused = true); }
+        function resetTimer() { clearInterval(timerInterval); remainingSeconds = 0; document.getElementById('timer-display-box').innerText = "00:00"; document.getElementById('timer-display-box').classList.remove('timer-alert'); }
+        function triggerAlert() {
             document.getElementById('timer-display-box').classList.add('timer-alert');
-            
-            // 1. Vibrar agresivamente (3 veces largo)
-            if ("vibrate" in navigator) {
-                navigator.vibrate([1000, 500, 1000, 500, 1000]);
-            }
-
-            // 2. Tocar pitido electrónico (Beep)
-            if (audioCtx) {
-                const playBeep = (startTime) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = "square"; // Sonido más penetrante que 'sine'
-                    osc.frequency.setValueAtTime(1000, startTime);
-                    gain.gain.setValueAtTime(0.5, startTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(startTime);
-                    osc.stop(startTime + 0.5);
-                };
-
-                const now = audioCtx.currentTime;
-                playBeep(now);
-                playBeep(now + 0.6);
-                playBeep(now + 1.2);
+            if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
+            if(audioCtx) {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = "square"; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 1);
             }
         }
-
-        document.addEventListener("visibilitychange", () => {
-            if (!document.hidden && !isTimerPaused && timerEndTimestamp) {
-                updateTimerLogic();
-            }
-        });
-
     </script>
 </body>
 </html>
